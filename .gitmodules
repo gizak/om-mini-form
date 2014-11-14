@@ -1,0 +1,4 @@
+[submodule "checkouts/om-mini-form"]
+	path = checkouts/om-mini-form
+	url = https://github.com/gizak/om-mini-form.git
+	branch = master
