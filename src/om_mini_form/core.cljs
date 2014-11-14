@@ -1,7 +1,19 @@
 (ns om-mini-form.core
   (:require [om.core :as om :include-macros true]
             [om-tools.dom :as dom :include-macros true]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [cljs.reader :as reader]))
+
+
+(defn- cast-new-val [pre now]
+  (cond
+   (string? pre) now
+   (number? pre) (num now)
+   :else (reader/read-string now)))
+
+
+(defn- make-textarea [s path])
+
 
 
 (defn- make-text [s path]
@@ -24,21 +36,23 @@
                   (dom/label label)
                   (for [i (range (count options))]
                     (let [item-id (str id "." i)]
-                      (dom/label {:for item-id}
-                                 (dom/input {:type "checkbox"
-                                             :value i
-                                             :checked (contains? checked i)
-                                             :id item-id
-                                             :name item-id
-                                             :on-change (fn [e]
-                                                          (let [chk-path (conj path :checked)
-                                                                chked (.. e -target -checked)]
-                                                            (if chked
-                                                              (om/transact! s chk-path #(conj % i))
-                                                              (om/transact! s chk-path #(disj % i)))
-                                                            (om/update! s (conj path :value) (mapv #(((get-in @s (conj path :options)) %) 1)
-                                                                                                   (get-in @s chk-path)))))})
-                                 (dom/span ((options i) 0))))))))
+                      (dom/label
+                       {:for item-id}
+                       (dom/input
+                        {:type "checkbox"
+                         :value i
+                         :checked (contains? checked i)
+                         :id item-id
+                         :name item-id
+                         :on-change (fn [e]
+                                      (let [chk-path (conj path :checked)
+                                            chked (.. e -target -checked)]
+                                        (if chked
+                                          (om/transact! s chk-path #(conj % i))
+                                          (om/transact! s chk-path #(disj % i)))
+                                        (om/update! s (conj path :value) (mapv #(((get-in @s (conj path :options)) %) 1)
+                                                                               (get-in @s chk-path)))))})
+                       (dom/span ((options i) 0))))))))
 
 
 (defn- make-select [s path]
@@ -67,17 +81,18 @@
                   (dom/label label)
                   (for [i (range (count options))]
                     (let [item-id (str id "." i)]
-                      (dom/label {:for item-id}
-                                 (dom/input {:type "radio"
-                                             :value i
-                                             :checked (= checked i)
-                                             :id item-id
-                                             :name item-id
-                                             :on-change (fn [e]
-                                                          (let [chk-path (conj path :checked)]
-                                                            (om/update! s chk-path i)
-                                                            (om/update! s (conj path :value) (((get-in @s (conj path :options)) i) 1))))})
-                                 (dom/span ((options i) 0))))))))
+                      (dom/label
+                       {:for item-id}
+                       (dom/input {:type "radio"
+                                   :value i
+                                   :checked (= checked i)
+                                   :id item-id
+                                   :name item-id
+                                   :on-change (fn [e]
+                                                (let [chk-path (conj path :checked)]
+                                                  (om/update! s chk-path i)
+                                                  (om/update! s (conj path :value) (((get-in @s (conj path :options)) i) 1))))})
+                       (dom/span ((options i) 0))))))))
 
 
 (def run-once (let [called (atom false)]
