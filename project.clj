@@ -17,7 +17,7 @@
                  [com.cemerick/piggieback "0.1.3"]
                  [weasel "0.4.0-SNAPSHOT"]
                  [leiningen "2.5.0"]
-                 [om-mini-form "0.1.0-SNAPSHOT"]
+                 [om-mini-form "0.1.0"]
                  [prismatic/om-tools "0.3.6"]]
 
   :plugins [[lein-cljsbuild "1.0.3"]
