@@ -6,15 +6,31 @@
 
 
 (defn- cast-new-val [pre now]
-  (cond
-   (string? pre) now
-   (number? pre) (num now)
-   :else (reader/read-string now)))
+  (if (string? now)
+    (if-let [v (reader/read-string now)]
+      v
+      now)
+    now))
+
+(defn- update-new-val [s path e]
+  (let [nval (.. e -target -value)
+        vpath (conj path :value)]
+    (om/transact! s vpath #(cast-new-val % nval))))
 
 
-(defn- make-textarea [s path])
-
-
+(defn- make-textarea [s path]
+  (let [{:keys [label]} (get-in s path)
+        id (string/join "." (map name path))]
+    (dom/fieldset
+     (dom/label {:for id} label)
+     (dom/textarea {:name id
+                    :id id
+                    :value (let [v (get-in s (conj path :value))]
+                          (if (string? v)
+                            v
+                            (pr-str v)))
+                    :on-change (fn [e]
+                                 (update-new-val s path e))}))))
 
 (defn- make-text [s path]
   (let [{:keys [label]} (get-in s path)
@@ -24,9 +40,12 @@
      (dom/input {:name id
                  :id id
                  :type "text"
-                 :value (get-in s (conj path :value))
+                 :value (let [v (get-in s (conj path :value))]
+                          (if (string? v)
+                            v
+                            (pr-str v)))
                  :on-change (fn [e]
-                              (om/update! s (conj path :value) (.. e -target -value)))}))))
+                              (update-new-val s path e))}))))
 
 
 (defn- make-checkbox [s path]
@@ -113,6 +132,7 @@
                           opt-path (conj path :options)]
                       (case type
                         :text nil
+                        :textarea nil
                         :select (om/update! s vpath
                                             (((get-in s opt-path)
                                               (get-in s (conj path :index))) 1))
@@ -123,7 +143,7 @@
                                               (mapv #(((get-in s opt-path) %) 1)
                                                     (get-in s (conj path :checked))))))))))
     (dom/form {:class "binding-form"
-               :on-change #()}
+               :on-change #(print (extract @s form-path))}
               (for [k ks]
                 (let [path (conj form-path k)
                       type (get-in s (conj path :type))]
@@ -131,7 +151,8 @@
                     :text (make-text s path)
                     :select (make-select s path)
                     :radio (make-radio s path)
-                    :checkbox (make-checkbox s path)))))))
+                    :checkbox (make-checkbox s path)
+                    :textarea (make-textarea s path)))))))
 
 
 (defn extract [s form-path]

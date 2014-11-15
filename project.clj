@@ -1,4 +1,4 @@
-(defproject om-mini-form "0.1.0-SNAPSHOT"
+(defproject om-mini-form "0.1.0"
   :description "Om in-page form component"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
